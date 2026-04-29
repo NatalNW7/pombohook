@@ -3,11 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/NatalNW7/pombohook/internal/cli"
+	"github.com/NatalNW7/pombohook/internal/forward"
 	"github.com/NatalNW7/pombohook/internal/storage"
+	"github.com/NatalNW7/pombohook/internal/tunnel"
 )
 
 func main() {
@@ -106,8 +109,43 @@ func runGo(store *storage.Storage, args []string) {
 		os.Exit(1)
 	}
 
-	// TODO: Phase 9 — connect tunnel, register routes, start forwarding
-	fmt.Println("🕊️  Pigeon is flying! (full implementation in Phase 9)")
+	cfg, _ := store.LoadConfig()
+	routesList, _ := store.LoadRoutes()
+	routes := make(map[string]int)
+	for _, r := range routesList {
+		routes[r.Path] = r.Port
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	fwd := forward.NewForwarder(routes, logger)
+
+	client := tunnel.NewTunnelClient(
+		cfg.Server,
+		cfg.Token,
+		func(frame tunnel.Frame) {
+			if frame.Type == tunnel.FrameTypeRequest {
+				fwd.Forward(frame)
+			}
+		},
+		logger,
+	)
+
+	fmt.Println("🕊️  Pigeon is flying! Listening for webhooks...")
+	for path, port := range routes {
+		fmt.Printf("    %-20s → localhost:%d%s\n", path, port, path)
+	}
+
+	if err := client.Connect(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error connecting: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := client.SendRegister(routesList); err != nil {
+		fmt.Fprintf(os.Stderr, "Error registering: %v\n", err)
+		os.Exit(1)
+	}
+
+	client.Listen()
 }
 
 func runSleep(store *storage.Storage) {

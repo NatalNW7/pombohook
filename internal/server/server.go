@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/NatalNW7/pombohook/internal/config"
+	"github.com/NatalNW7/pombohook/internal/proxy"
 	"github.com/NatalNW7/pombohook/internal/queue"
 	"github.com/NatalNW7/pombohook/internal/router"
 	"github.com/NatalNW7/pombohook/internal/tunnel"
@@ -47,7 +48,16 @@ func NewServer(
 // SetupRoutes configures the HTTP mux with all endpoints.
 func (s *Server) SetupRoutes() {
 	s.mux.Handle("/ping", s.auth(http.HandlerFunc(s.handlePing)))
-	// /ws and catch-all will be added in later phases.
+	
+	// Tunnel connection endpoint
+	s.mux.Handle("/ws", s.auth(http.HandlerFunc(s.handleWS)))
+
+	// Proxy handler (catch-all)
+	// We only wrap proxy in auth if we want webhooks to be authenticated, 
+	// but generally webhooks from external providers (Stripe, MP) won't have our internal token.
+	// We'll leave the catch-all without our TokenMiddleware, relying on the target to validate signatures.
+	proxyHandler := proxy.NewProxyHandler(s.registry, s.tunnel, s.queue, s.logger)
+	s.mux.Handle("/", proxyHandler)
 }
 
 // Start begins listening on the configured port.
@@ -67,4 +77,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		return nil
 	}
 	return s.httpSrv.Shutdown(ctx)
+}
+
+// Handler returns the server's HTTP handler (mux) for testing.
+func (s *Server) Handler() http.Handler {
+	return s.mux
 }
