@@ -1,4 +1,4 @@
-package pombohook_test
+package tests
 
 import (
 	"io"

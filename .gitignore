@@ -5,6 +5,12 @@ bin/
 *.dll
 *.so
 *.dylib
+server
+pombo
+
+# Logs
+*.log
+e2e.log
 
 # Test
 coverage.out
