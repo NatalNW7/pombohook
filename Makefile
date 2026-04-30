@@ -1,4 +1,4 @@
-.PHONY: build-server build-cli build test coverage lint clean
+.PHONY: build-server build-cli build test coverage coverage-html lint clean
 
 build-server:
 	go build -o bin/pombohook-server ./cmd/server/
@@ -14,6 +14,9 @@ test:
 coverage:
 	go test ./... -coverprofile=coverage.out
 	go tool cover -func=coverage.out
+
+coverage-html: coverage
+	go tool cover -html=coverage.out
 
 lint:
 	go vet ./...
