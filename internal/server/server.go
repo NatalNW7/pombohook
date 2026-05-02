@@ -48,12 +48,12 @@ func NewServer(
 // SetupRoutes configures the HTTP mux with all endpoints.
 func (s *Server) SetupRoutes() {
 	s.mux.Handle("/ping", s.auth(http.HandlerFunc(s.handlePing)))
-	
+
 	// Tunnel connection endpoint
 	s.mux.Handle("/ws", s.auth(http.HandlerFunc(s.handleWS)))
 
 	// Proxy handler (catch-all)
-	// We only wrap proxy in auth if we want webhooks to be authenticated, 
+	// We only wrap proxy in auth if we want webhooks to be authenticated,
 	// but generally webhooks from external providers (Stripe, MP) won't have our internal token.
 	// We'll leave the catch-all without our TokenMiddleware, relying on the target to validate signatures.
 	proxyHandler := proxy.NewProxyHandler(s.registry, s.tunnel, s.queue, s.logger)

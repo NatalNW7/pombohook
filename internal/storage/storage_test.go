@@ -23,4 +23,9 @@ func TestStorage_CreateBaseDirectory(t *testing.T) {
 
 		assert.True(t, s.ConfigExists())
 	})
+
+	t.Run("should return base path", func(t *testing.T) {
+		s := NewStorage("/tmp/test-pombo")
+		assert.Equal(t, "/tmp/test-pombo", s.BasePath())
+	})
 }

@@ -73,7 +73,7 @@ func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.logger.Error("failed to send frame", "error", err)
 			}
 		}()
-		
+
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "delivered"})
 		h.logger.Info("webhook delivered to tunnel", "path", r.URL.Path)

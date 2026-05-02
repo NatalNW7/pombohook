@@ -96,7 +96,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 			conn.Close()
 			s.logger.Info("tunnel client disconnected", "tunnel_id", tunnelID)
 		}()
-		
+
 		for {
 			_, err := s.tunnel.ReadFrame()
 			if err != nil {

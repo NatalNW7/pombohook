@@ -21,7 +21,7 @@ func TestE2E_Delivery(t *testing.T) {
 	require.NoError(t, err)
 	err = env.client.SendRegister([]config.RouteMapping{{Path: "/webhook/test", Port: env.targetPort}})
 	require.NoError(t, err)
-	
+
 	// Start listening in background
 	go env.client.Listen()
 	time.Sleep(100 * time.Millisecond) // wait for connection to register
@@ -32,7 +32,7 @@ func TestE2E_Delivery(t *testing.T) {
 
 		payload := `{"event":"charge"}`
 		req, _ := http.NewRequest(http.MethodPost, env.tsServer.URL+"/webhook/test", bytes.NewReader([]byte(payload)))
-		
+
 		// 2. Send webhook to server
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestE2E_Delivery(t *testing.T) {
 		env.setReceivedMethod("")
 
 		req, _ := http.NewRequest(http.MethodGet, env.tsServer.URL+"/webhook/test", nil)
-		
+
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -66,11 +66,11 @@ func TestE2E_Delivery(t *testing.T) {
 	t.Run("e2e_should_return_200_immediately", func(t *testing.T) {
 		// Just to explicitly verify the response structure
 		req, _ := http.NewRequest(http.MethodPut, env.tsServer.URL+"/webhook/test", bytes.NewReader([]byte(`{}`)))
-		
+
 		start := time.Now()
 		resp, err := http.DefaultClient.Do(req)
 		duration := time.Since(start)
-		
+
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -91,13 +91,13 @@ func TestE2E_Queueing(t *testing.T) {
 	t.Run("e2e_should_queue_when_cli_offline", func(t *testing.T) {
 		// CLI is NOT connected
 		req, _ := http.NewRequest(http.MethodPost, env.tsServer.URL+"/webhook/test", bytes.NewReader([]byte(`{"queued":true}`)))
-		
+
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusAccepted, resp.StatusCode) // 202 Queued
-		assert.Empty(t, env.getReceivedBody()) // Target did NOT receive it
+		assert.Empty(t, env.getReceivedBody())                // Target did NOT receive it
 	})
 
 	t.Run("e2e_should_flush_queue_on_reconnect", func(t *testing.T) {
@@ -154,7 +154,7 @@ func TestE2E_PingAndAuth(t *testing.T) {
 	t.Run("e2e_ping_should_return_pong_with_auth", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodGet, env.tsServer.URL+"/ping", nil)
 		req.Header.Set("Authorization", "Bearer e2e-token")
-		
+
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -165,7 +165,7 @@ func TestE2E_PingAndAuth(t *testing.T) {
 	t.Run("e2e_ping_should_reject_without_auth", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodGet, env.tsServer.URL+"/ping", nil)
 		// Missing auth header
-		
+
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()

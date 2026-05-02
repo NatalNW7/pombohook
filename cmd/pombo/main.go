@@ -8,9 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/NatalNW7/pombohook/internal/cli"
-	"github.com/NatalNW7/pombohook/internal/forward"
 	"github.com/NatalNW7/pombohook/internal/storage"
-	"github.com/NatalNW7/pombohook/internal/tunnel"
 )
 
 func main() {
@@ -105,47 +103,35 @@ func runRoute(store *storage.Storage, args []string) {
 }
 
 func runGo(store *storage.Storage, args []string) {
-	if err := cli.ValidateGoPrerequisites(store, os.Stdout); err != nil {
-		os.Exit(1)
+	fs := flag.NewFlagSet("go", flag.ExitOnError)
+	background := fs.Bool("background", false, "Run in background (daemon mode)")
+	daemon := fs.Bool("daemon", false, "Internal: run as daemon child process")
+	fs.Parse(args)
+
+	if *daemon {
+		// We are the daemon child process — run foreground (output goes to log file)
+		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+		if err := cli.RunGo(store, os.Stdout, logger); err != nil {
+			fmt.Fprintf(os.Stderr, "Daemon error: %v\n", err)
+			os.Exit(1)
+		}
+		return
 	}
 
-	cfg, _ := store.LoadConfig()
-	routesList, _ := store.LoadRoutes()
-	routes := make(map[string]int)
-	for _, r := range routesList {
-		routes[r.Path] = r.Port
+	if *background {
+		executable, _ := os.Executable()
+		if err := cli.RunGoBackground(store, os.Stdout, executable); err != nil {
+			os.Exit(1)
+		}
+		return
 	}
 
+	// Foreground mode (original behavior)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	fwd := forward.NewForwarder(routes, logger)
-
-	client := tunnel.NewTunnelClient(
-		cfg.Server,
-		cfg.Token,
-		func(frame tunnel.Frame) {
-			if frame.Type == tunnel.FrameTypeRequest {
-				fwd.Forward(frame)
-			}
-		},
-		logger,
-	)
-
-	fmt.Println("🕊️  Pigeon is flying! Listening for webhooks...")
-	for path, port := range routes {
-		fmt.Printf("    %-20s → localhost:%d%s\n", path, port, path)
-	}
-
-	if err := client.Connect(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error connecting: %v\n", err)
+	if err := cli.RunGo(store, os.Stdout, logger); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
-	if err := client.SendRegister(routesList); err != nil {
-		fmt.Fprintf(os.Stderr, "Error registering: %v\n", err)
-		os.Exit(1)
-	}
-
-	client.Listen()
 }
 
 func runSleep(store *storage.Storage) {

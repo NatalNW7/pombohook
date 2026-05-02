@@ -132,4 +132,3 @@ func setupE2EEnvironment(t *testing.T, queueCapacity int) *e2eEnv {
 		targetPort:        targetPort,
 	}
 }
-
