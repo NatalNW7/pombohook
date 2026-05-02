@@ -25,8 +25,21 @@ func e2eLogger() *slog.Logger {
 	}))
 }
 
+// e2eEnv holds all components needed for an E2E test.
+type e2eEnv struct {
+	tsServer          *httptest.Server
+	targetServer      *httptest.Server
+	client            *tunnel.TunnelClient
+	registry          *router.RouteRegistry
+	getReceivedBody   func() string
+	getReceivedMethod func() string
+	setReceivedBody   func(string)
+	setReceivedMethod func(string)
+	targetPort        int
+}
+
 // setupE2EEnvironment sets up an in-memory server, a tunnel client, and a target localhost mock.
-func setupE2EEnvironment(t *testing.T, queueCapacity int) (*httptest.Server, *httptest.Server, *tunnel.TunnelClient, func() string, func() string, func(string), func(string), int) {
+func setupE2EEnvironment(t *testing.T, queueCapacity int) *e2eEnv {
 	logger := e2eLogger()
 	token := "e2e-token"
 
@@ -107,5 +120,16 @@ func setupE2EEnvironment(t *testing.T, queueCapacity int) (*httptest.Server, *ht
 		logger,
 	)
 
-	return tsServer, targetServer, client, getReceivedBody, getReceivedMethod, setReceivedBody, setReceivedMethod, targetPort
+	return &e2eEnv{
+		tsServer:          tsServer,
+		targetServer:      targetServer,
+		client:            client,
+		registry:          registry,
+		getReceivedBody:   getReceivedBody,
+		getReceivedMethod: getReceivedMethod,
+		setReceivedBody:   setReceivedBody,
+		setReceivedMethod: setReceivedMethod,
+		targetPort:        targetPort,
+	}
 }
+

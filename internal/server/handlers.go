@@ -91,6 +91,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	// Listen for frames (acks, errors) and handle disconnect
 	go func() {
 		defer func() {
+			s.registry.UnregisterAll(tunnelID)
 			s.tunnel.RemoveConnection()
 			conn.Close()
 			s.logger.Info("tunnel client disconnected", "tunnel_id", tunnelID)
