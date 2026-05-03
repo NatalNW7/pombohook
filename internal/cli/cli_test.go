@@ -125,6 +125,22 @@ func TestRoute(t *testing.T) {
 		assert.Contains(t, buf.String(), "/webhook/stripe")
 	})
 
+	t.Run("should list no routes message when empty", func(t *testing.T) {
+		store := newTestStore(t)
+		var buf bytes.Buffer
+		err := RunRouteList(store, &buf)
+		require.NoError(t, err)
+		assert.Contains(t, buf.String(), "No routes registered")
+	})
+
+	t.Run("should error listing routes with bad json", func(t *testing.T) {
+		store := newTestStore(t)
+		os.WriteFile(store.BasePath()+"/routes.json", []byte("{bad-json"), 0644)
+		var buf bytes.Buffer
+		err := RunRouteList(store, &buf)
+		require.Error(t, err)
+	})
+
 	t.Run("should remove route", func(t *testing.T) {
 		store := newTestStore(t)
 		var buf bytes.Buffer
@@ -139,6 +155,14 @@ func TestRoute(t *testing.T) {
 		assert.Contains(t, buf.String(), "Route removed")
 	})
 
+	t.Run("should error removing route with bad json", func(t *testing.T) {
+		store := newTestStore(t)
+		os.WriteFile(store.BasePath()+"/routes.json", []byte("{bad-json"), 0644)
+		var buf bytes.Buffer
+		err := RunRouteRemove(store, &buf, "/webhook/mp")
+		require.Error(t, err)
+	})
+
 	t.Run("should clear routes", func(t *testing.T) {
 		store := newTestStore(t)
 		var buf bytes.Buffer
@@ -151,6 +175,15 @@ func TestRoute(t *testing.T) {
 		routes, _ := store.LoadRoutes()
 		assert.Empty(t, routes)
 		assert.Contains(t, buf.String(), "cleared")
+	})
+
+	t.Run("should error clearing routes with bad dir", func(t *testing.T) {
+		store := newTestStore(t)
+		os.RemoveAll(store.BasePath())
+		os.WriteFile(store.BasePath(), []byte("file"), 0644)
+		var buf bytes.Buffer
+		err := RunRouteClear(store, &buf)
+		require.Error(t, err)
 	})
 
 	t.Run("should validate path starts with slash", func(t *testing.T) {

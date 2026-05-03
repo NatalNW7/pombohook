@@ -235,10 +235,79 @@ func TestHandlers_WS(t *testing.T) {
 		defer ts.Close()
 
 		wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws"
-		// No auth header
 		_, resp, err := websocket.DefaultDialer.Dial(wsURL, nil)
 		require.Error(t, err)
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("ws should fail on non-websocket request", func(t *testing.T) {
+		srv := newTestServer()
+		ts := httptest.NewServer(srv.Handler())
+		defer ts.Close()
+
+		req, _ := http.NewRequest("GET", ts.URL+"/ws", nil)
+		req.Header.Set("Authorization", "Bearer "+testServerToken)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("ws should reject invalid register frame body", func(t *testing.T) {
+		srv := newTestServer()
+		ts := httptest.NewServer(srv.Handler())
+		defer ts.Close()
+
+		wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws"
+		conn, _, err := websocket.DefaultDialer.Dial(wsURL, wsAuthHeader())
+		require.NoError(t, err)
+		defer conn.Close()
+
+		// Send REGISTER with invalid JSON
+		regFrame := tunnel.NewRegisterFrame(nil)
+		regFrame.Body = []byte("bad-json")
+		data, _ := tunnel.Encode(regFrame)
+		conn.WriteMessage(websocket.TextMessage, data)
+
+		// Should receive an ERROR frame
+		conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+		_, msg, err := conn.ReadMessage()
+		require.NoError(t, err)
+		
+		f, _ := tunnel.Decode(msg)
+		assert.Equal(t, tunnel.FrameTypeError, f.Type)
+	})
+
+	t.Run("ws should disconnect if first frame is not register", func(t *testing.T) {
+		srv := newTestServer()
+		ts := httptest.NewServer(srv.Handler())
+		defer ts.Close()
+
+		wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws"
+		conn, _, err := websocket.DefaultDialer.Dial(wsURL, wsAuthHeader())
+		require.NoError(t, err)
+
+		// Send REQUEST frame instead
+		reqFrame := tunnel.NewRequestFrame("GET", "/", nil, nil)
+		data, _ := tunnel.Encode(reqFrame)
+		conn.WriteMessage(websocket.TextMessage, data)
+
+		// Should be disconnected
+		_, _, err = conn.ReadMessage()
+		require.Error(t, err) // close error
+	})
+
+	t.Run("ws should disconnect if read fails immediately", func(t *testing.T) {
+		srv := newTestServer()
+		ts := httptest.NewServer(srv.Handler())
+		defer ts.Close()
+
+		wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws"
+		conn, _, err := websocket.DefaultDialer.Dial(wsURL, wsAuthHeader())
+		require.NoError(t, err)
+
+		// Send bad data and close
+		conn.WriteMessage(websocket.TextMessage, []byte("bad-format"))
+		conn.Close()
 	})
 }
 
