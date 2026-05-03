@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/NatalNW7/pombohook/internal/auth"
 	"github.com/NatalNW7/pombohook/internal/config"
@@ -59,5 +60,12 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	srv.Shutdown(context.Background())
+	logger.Info("shutting down server...")
+	
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error("server shutdown error", "error", err)
+	}
 }
