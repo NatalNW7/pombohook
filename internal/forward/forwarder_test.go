@@ -5,7 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"net/url"
+	"strconv"
 	"testing"
 
 	"github.com/NatalNW7/pombohook/internal/tunnel"
@@ -173,14 +174,9 @@ func TestForwarder_EdgeCases(t *testing.T) {
 // extractPort parses the port number from an httptest URL like "http://127.0.0.1:PORT"
 func extractPort(t *testing.T, rawURL string) int {
 	t.Helper()
-	parts := strings.Split(rawURL, ":")
-	require.Len(t, parts, 3)
-	var port int
-	_, err := io.ReadAll(strings.NewReader(parts[2]))
+	u, err := url.Parse(rawURL)
 	require.NoError(t, err)
-	// Parse the port
-	for _, c := range parts[2] {
-		port = port*10 + int(c-'0')
-	}
+	port, err := strconv.Atoi(u.Port())
+	require.NoError(t, err)
 	return port
 }

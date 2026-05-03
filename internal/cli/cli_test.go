@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/NatalNW7/pombohook/internal/config"
@@ -275,9 +276,10 @@ func TestRunGo(t *testing.T) {
 		store.SaveConfig(storage.PomboConfig{Server: wsURL, Token: "t"})
 		store.AddRoute(config.RouteMapping{Path: "/webhook/test", Port: 8081})
 		var buf bytes.Buffer
-		
+		logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
 		// This will fail at Connect() because the mock server isn't a real WS server
-		err := RunGo(store, &buf, nil)
+		err := RunGo(store, &buf, logger)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "connecting:")
 	})
@@ -350,6 +352,35 @@ func TestSleepErrors(t *testing.T) {
 		err := RunSleep(store, &buf)
 		require.Error(t, err)
 		assert.Contains(t, buf.String(), "No pigeon")
+	})
+
+	t.Run("should stop a running process", func(t *testing.T) {
+		store := newTestStore(t)
+		var buf bytes.Buffer
+
+		// Start a real process we can kill
+		cmd := exec.Command("sleep", "30")
+		require.NoError(t, cmd.Start())
+		defer cmd.Process.Kill() // safety cleanup
+
+		store.SavePID(cmd.Process.Pid)
+
+		err := RunSleep(store, &buf)
+		require.NoError(t, err)
+		assert.Contains(t, buf.String(), "resting")
+		assert.False(t, store.PIDExists())
+	})
+
+	t.Run("should cleanup stale pid of dead process", func(t *testing.T) {
+		store := newTestStore(t)
+		var buf bytes.Buffer
+
+		store.SavePID(999999) // PID inexistente
+
+		err := RunSleep(store, &buf)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "process not running")
+		assert.False(t, store.PIDExists())
 	})
 }
 

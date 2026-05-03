@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 
 	"github.com/NatalNW7/pombohook/internal/config"
 	"github.com/NatalNW7/pombohook/internal/proxy"
@@ -22,6 +23,7 @@ type Server struct {
 	auth     func(http.Handler) http.Handler
 	logger   *slog.Logger
 	mux      *http.ServeMux
+	mu       sync.Mutex
 	httpSrv  *http.Server
 }
 
@@ -62,10 +64,12 @@ func (s *Server) SetupRoutes() {
 
 // Start begins listening on the configured port.
 func (s *Server) Start() error {
+	s.mu.Lock()
 	s.httpSrv = &http.Server{
 		Addr:    fmt.Sprintf(":%s", s.config.Port),
 		Handler: s.mux,
 	}
+	s.mu.Unlock()
 
 	s.logger.Info("starting server", "port", s.config.Port)
 	return s.httpSrv.ListenAndServe()
@@ -73,6 +77,8 @@ func (s *Server) Start() error {
 
 // Shutdown gracefully shuts down the server.
 func (s *Server) Shutdown(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.httpSrv == nil {
 		return nil
 	}

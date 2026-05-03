@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -238,5 +239,43 @@ func TestHandlers_WS(t *testing.T) {
 		_, resp, err := websocket.DefaultDialer.Dial(wsURL, nil)
 		require.Error(t, err)
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+}
+
+func TestServer_StartAndShutdown(t *testing.T) {
+	t.Run("should start listening and shutdown gracefully", func(t *testing.T) {
+		logger := serverTestLogger()
+		cfg := &config.ServerConfig{
+			Port:      "0",
+			AuthToken: testServerToken,
+			LogLevel:  "info",
+		}
+		registry := router.NewRouteRegistry()
+		tm := tunnel.NewTunnelManager(logger)
+		q := queue.NewWebhookQueue(20)
+		authMW := auth.TokenMiddleware(cfg.AuthToken, logger)
+
+		srv := NewServer(cfg, registry, tm, q, authMW, logger)
+		srv.SetupRoutes()
+
+		errCh := make(chan error, 1)
+		go func() { errCh <- srv.Start() }()
+
+		// Give server time to bind
+		time.Sleep(100 * time.Millisecond)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		err := srv.Shutdown(ctx)
+		require.NoError(t, err)
+
+		startErr := <-errCh
+		assert.ErrorIs(t, startErr, http.ErrServerClosed)
+	})
+
+	t.Run("shutdown before start should be no-op", func(t *testing.T) {
+		srv := newTestServer()
+		err := srv.Shutdown(context.Background())
+		assert.NoError(t, err)
 	})
 }
