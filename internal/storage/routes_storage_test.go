@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"os"
 	"testing"
 
 	"github.com/NatalNW7/pombohook/internal/config"
@@ -90,5 +91,25 @@ func TestRoutesStorage_SaveAndLoad(t *testing.T) {
 		loaded, err := s.LoadRoutes()
 		require.NoError(t, err)
 		assert.Empty(t, loaded)
+	})
+
+	t.Run("should return error when unable to save routes", func(t *testing.T) {
+		s := NewStorage("/dev/null/foo")
+		err := s.SaveRoutes([]RouteMapping{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "creating storage directory")
+	})
+
+	t.Run("should return error when routes file has invalid content", func(t *testing.T) {
+		s := newTestStorage(t)
+		err := s.ensureDir()
+		require.NoError(t, err)
+		
+		err = os.WriteFile(s.filePath(routesFile), []byte("invalid-json"), 0600)
+		require.NoError(t, err)
+
+		_, err = s.LoadRoutes()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "parsing routes")
 	})
 }

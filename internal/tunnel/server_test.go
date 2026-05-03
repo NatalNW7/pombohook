@@ -176,4 +176,27 @@ func TestTunnelManager_ReadFrame(t *testing.T) {
 		assert.Equal(t, FrameTypeRegister, received.Type)
 		assert.Equal(t, regFrame.ID, received.ID)
 	})
+
+	t.Run("should return error when reading offline", func(t *testing.T) {
+		tm := NewTunnelManager(testLogger())
+		_, err := tm.ReadFrame()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not connected")
+	})
+
+	t.Run("should return error on malformed frame", func(t *testing.T) {
+		tm := NewTunnelManager(testLogger())
+		srv, connCh := wsTestServer(t)
+		clientConn := wsConnect(t, srv)
+		serverConn := <-connCh
+		tm.SetConnection(serverConn)
+
+		// Client sends invalid JSON
+		err := clientConn.WriteMessage(websocket.TextMessage, []byte("invalid"))
+		require.NoError(t, err)
+
+		_, err = tm.ReadFrame()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "decoding frame")
+	})
 }

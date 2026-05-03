@@ -107,6 +107,22 @@ func TestTunnelClient_SendRegister(t *testing.T) {
 			t.Fatal("timeout waiting for register frame")
 		}
 	})
+
+	t.Run("should fail to send register if connection is closed", func(t *testing.T) {
+		srv := echoWSServer(t, func(conn *websocket.Conn) {})
+		wsURL := "ws" + strings.TrimPrefix(srv.URL, "http")
+		client := NewTunnelClient(wsURL, "test-token", func(f Frame) {}, clientTestLogger())
+		err := client.Connect()
+		require.NoError(t, err)
+
+		// Force close
+		client.Close()
+
+		routes := []config.RouteMapping{{Path: "/webhook/mp", Port: 8081}}
+		err = client.SendRegister(routes)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "websocket: close sent")
+	})
 }
 
 func TestTunnelClient_Listen(t *testing.T) {
@@ -190,5 +206,22 @@ func TestTunnelClient_Listen(t *testing.T) {
 		// Listen should return without panic when server closes
 		client.Listen()
 		// If we reach here, graceful shutdown worked
+	})
+
+	t.Run("should ignore malformed frame gracefully", func(t *testing.T) {
+		srv := echoWSServer(t, func(conn *websocket.Conn) {
+			conn.WriteMessage(websocket.TextMessage, []byte("invalid-json"))
+			time.Sleep(100 * time.Millisecond)
+			conn.Close()
+		})
+
+		wsURL := "ws" + strings.TrimPrefix(srv.URL, "http")
+		client := NewTunnelClient(wsURL, "test-token", func(f Frame) {
+			t.Fatal("handler should not be called for malformed frame")
+		}, clientTestLogger())
+		err := client.Connect()
+		require.NoError(t, err)
+
+		client.Listen()
 	})
 }

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,5 +37,25 @@ func TestPIDStorage_SaveAndLoad(t *testing.T) {
 
 		s.SavePID(99)
 		assert.True(t, s.PIDExists())
+	})
+
+	t.Run("should return error when unable to save pid", func(t *testing.T) {
+		s := NewStorage("/dev/null/foo")
+		err := s.SavePID(123)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "creating storage directory")
+	})
+
+	t.Run("should return error when pid file has invalid content", func(t *testing.T) {
+		s := newTestStorage(t)
+		err := s.ensureDir()
+		require.NoError(t, err)
+		
+		err = os.WriteFile(s.filePath(pidFile), []byte("not-an-int"), 0600)
+		require.NoError(t, err)
+
+		_, err = s.LoadPID()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "parsing PID")
 	})
 }
