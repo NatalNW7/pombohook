@@ -5,9 +5,11 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   build-test-coverage:
+    if: github.event.pull_request.draft == false || github.event_name == 'push'
     name: Build, Test & Coverage (Go ${{ matrix.go-version }})
     runs-on: ubuntu-latest
     strategy:
