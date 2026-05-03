@@ -49,19 +49,22 @@ func (tm *TunnelManager) IsOnline() bool {
 // Send serializes and sends a Frame to the connected CLI via WebSocket.
 // Returns an error if no client is connected.
 func (tm *TunnelManager) Send(frame Frame) error {
-	tm.mu.Lock()
-	defer tm.mu.Unlock()
-
+	tm.mu.RLock()
 	if !tm.isOnline || tm.conn == nil {
+		tm.mu.RUnlock()
 		return fmt.Errorf("tunnel not connected")
 	}
+	conn := tm.conn
+	tm.mu.RUnlock()
 
 	data, err := Encode(frame)
 	if err != nil {
 		return fmt.Errorf("encoding frame: %w", err)
 	}
 
-	if err := tm.conn.WriteMessage(websocket.TextMessage, data); err != nil {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 		return fmt.Errorf("writing to websocket: %w", err)
 	}
 

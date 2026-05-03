@@ -28,6 +28,9 @@ type Server struct {
 }
 
 // NewServer creates a new Server with all dependencies injected.
+// Design note: authMiddleware is injected as a function parameter (not stored as a field)
+// for better dependency injection and testability. This diverges from the original spec
+// which showed auth as a struct field.
 func NewServer(
 	cfg *config.ServerConfig,
 	registry *router.RouteRegistry,

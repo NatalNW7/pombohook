@@ -383,13 +383,3 @@ func TestSleepErrors(t *testing.T) {
 		assert.False(t, store.PIDExists())
 	})
 }
-
-func TestUnknownCommand(t *testing.T) {
-	t.Run("should error on unknown command", func(t *testing.T) {
-		var buf bytes.Buffer
-
-		err := Dispatch(&buf, []string{"pombo", "fly"}, nil)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "Unknown command")
-	})
-}

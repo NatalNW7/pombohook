@@ -42,7 +42,7 @@ func main() {
 	}))
 
 	registry := router.NewRouteRegistry()
-	webhookQueue := queue.NewWebhookQueue(200)
+	webhookQueue := queue.NewWebhookQueue(20)
 	tunnelMgr := tunnel.NewTunnelManager(logger)
 	authMW := auth.TokenMiddleware(cfg.AuthToken, logger)
 

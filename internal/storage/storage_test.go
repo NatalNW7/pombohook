@@ -1,3 +1,7 @@
+// Tests use package `storage` (white-box) intentionally to access unexported helpers
+// like ensureDir() and filePath(). The public API surface is validated indirectly through
+// the CLI and E2E tests. A future black-box test file (package storage_test) can be added
+// if the public API grows.
 package storage
 
 import (

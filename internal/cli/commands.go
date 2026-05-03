@@ -77,19 +77,3 @@ func RunSleep(store *storage.Storage, w io.Writer) error {
 	return nil
 }
 
-// Dispatch routes CLI arguments to the correct command handler.
-func Dispatch(w io.Writer, args []string, store *storage.Storage) error {
-	if len(args) < 2 {
-		fmt.Fprintln(w, "Usage: pombo <command> [options]")
-		fmt.Fprintln(w, "Commands: ping, route, go, sleep")
-		return fmt.Errorf("no command specified")
-	}
-
-	switch args[1] {
-	case "ping", "route", "go", "sleep":
-		// These are handled by the main CLI entry point
-		return nil
-	default:
-		return fmt.Errorf("Unknown command: %s", args[1])
-	}
-}
