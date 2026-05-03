@@ -23,7 +23,7 @@ Clone o repositório e compile os binários do Servidor e do CLI:
 ```bash
 make build
 ```
-Isso gerará dois executáveis na raiz do projeto: `./server` e `./pombo`.
+Isso gerará dois executáveis na pasta `bin/`: `bin/pombohook-server` e `bin/pombo`.
 
 ### Passo 1: Subir o Servidor
 Você pode rodar o servidor localmente para testes ou hospedá-lo na nuvem.
@@ -33,7 +33,7 @@ export PORT=8080
 export AUTH_TOKEN="meu-token-super-secreto"
 export LOG_LEVEL="debug"
 
-./server
+./pombohook-server
 ```
 
 ### Passo 2: Conectar o CLI (Pombo)
@@ -46,7 +46,7 @@ Na sua máquina local, autentique-se com o servidor:
 ### Passo 3: Registrar uma Rota
 Diga ao PomboHook para qual porta local ele deve mandar os webhooks de um determinado path:
 ```bash
-./pombo route --path="/webhooks/pagamentos" --port=3000
+./pombo route --path="/webhooks/pagamentos" --port=3000 # enviara todos webhooks que chegarem no path "/webhooks/pagamentos" do servidor para localhost:3000/webhooks/pagamentos
 ```
 
 ### Passo 4: Voar! (Iniciar o Forwarding)
@@ -63,6 +63,15 @@ Para parar a execução em background:
 ./pombo sleep
 ```
 
+## 📦 Resiliência e Fila de Webhooks (Offline Mode)
+
+O que acontece se a sua internet cair, ou se você fechar o CLI local enquanto a integração (ex: Mercado Pago) tenta te mandar um webhook?
+
+Para evitar perda de dados, o Servidor do PomboHook possui uma **fila em memória (Queue)**:
+1. **Desconexão:** Quando o Servidor detecta que o CLI local não está conectado, ele intercepta o webhook recebido e o guarda na fila. O serviço externo que enviou o webhook receberá uma resposta de sucesso (`202 Accepted`), e não precisará fazer retentativas.
+2. **Limite de Segurança:** Por padrão, a fila comporta até **20 webhooks simultâneos**. Se o limite for atingido, os webhooks mais antigos são descartados para dar espaço aos novos (comportamento de *buffer circular*). Isso impede vazamentos de memória na sua hospedagem em nuvem.
+3. **Reconexão (Flush):** Assim que você ligar o CLI (`./pombo go`) novamente, o servidor detecta a conexão e imediatamente "descarrega" (flush) todos os webhooks acumulados na fila diretamente para a sua máquina local, na ordem em que chegaram.
+
 ## 📂 Organização de Pastas e Responsabilidades
 
 O projeto segue a estrutura padrão de projetos Go (`Standard Go Project Layout`):
@@ -74,7 +83,7 @@ O projeto segue a estrutura padrão de projetos Go (`Standard Go Project Layout`
   - `auth/`: Middlewares de autenticação (validação do `AUTH_TOKEN`).
   - `cli/`: Lógica principal dos comandos do CLI e gerenciamento de processos (daemon/background).
   - `config/`: Setup de variáveis de ambiente.
-  - `forward/`: Forwarder HTTP local. Recebe os frames via WebSocket e dispara os requests POST para o seu `localhost`.
+  - `forward/`: Forwarder HTTP local. Recebe os frames via WebSocket e dispara os requests para o seu `localhost`.
   - `proxy/`: Proxy reverso do Servidor. Intercepta os webhooks da web e os coloca na fila.
   - `queue/`: Fila em memória para gerenciar bursts de webhooks caso o CLI se desconecte temporariamente.
   - `router/`: Gerenciador de rotas. Mapeia paths (ex: `/webhook`) para portas locais.

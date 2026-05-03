@@ -5,8 +5,6 @@ bin/
 *.dll
 *.so
 *.dylib
-/server
-/pombo
 
 # Logs
 *.log
