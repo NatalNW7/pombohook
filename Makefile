@@ -9,10 +9,10 @@ build-cli:
 build: build-server build-cli
 
 test:
-	go test ./... -v -count=1 -race
+	go test $(shell go list ./... | grep -v /cmd/) -v -count=1 -race
 
 coverage:
-	go test ./... -coverprofile=coverage.out
+	go test $(shell go list ./... | grep -v /cmd/) -coverprofile=coverage.out
 	go tool cover -func=coverage.out
 
 coverage-html: coverage

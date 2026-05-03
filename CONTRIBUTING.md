@@ -33,6 +33,7 @@ PomboHook takes testing very seriously. For your Pull Request to be accepted, th
 3. **Coverage:** 
    - New code requires **100% coverage** for new lines.
    - The project has a global floor of **80% coverage**, and critical modules (auth, routing, tunnel) require at least **90%**.
+   - Note: The `cmd/` packages are explicitly excluded from coverage calculations since they act purely as thin wrappers for dependency injection and OS initialization.
 4. **Mocking:** Do not mock the unit under test, mock only its dependencies.
 
 ## 📝 Commit Standards
