@@ -27,13 +27,32 @@ This will generate two executables in the `bin/` folder: `bin/pombohook-server` 
 
 ### Step 1: Start the Server
 You can run the server locally for testing or host it in the cloud.
+
+#### Option A: Running from Binary
 ```bash
 # The server uses environment variables for configuration
 export PORT=8080
 export AUTH_TOKEN="my-super-secret-token"
 export LOG_LEVEL="debug"
 
-./pombohook-server
+./bin/pombohook-server
+```
+
+#### Option B: Running with Docker (Recommended for Cloud Hosting)
+The project includes a highly secure, minimalist Dockerfile using `scratch` (0 shells, minimal attack surface).
+
+```bash
+# 1. Build the Docker image
+docker build -t pombohook-server .
+
+# 2. Run the container exposing the port and injecting the env vars
+docker run -d \
+  -p 8080:8080 \
+  -e PORT=8080 \
+  -e AUTH_TOKEN="my-super-secret-token" \
+  -e LOG_LEVEL="debug" \
+  --name pombohook-server \
+  pombohook-server
 ```
 
 ### Step 2: Connect the CLI (Pombo)
