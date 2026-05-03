@@ -8,8 +8,12 @@ on:
 
 jobs:
   build-test-coverage:
-    name: Build, Test & Coverage
+    name: Build, Test & Coverage (Go ${{ matrix.go-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ['1.21', '1.24', '1.26']
     
     steps:
       - name: Check out code
@@ -18,7 +22,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: ${{ matrix.go-version }}
           cache: true
 
       - name: Lint
