@@ -1,56 +1,56 @@
-# Contribuindo para o PomboHook
+# Contributing to PomboHook
 
-Obrigado por se interessar em contribuir com o **PomboHook**! 🎉
+Thank you for your interest in contributing to **PomboHook**! 🎉
 
-Este documento serve como um guia para ajudar você a entender o nosso processo de desenvolvimento, os padrões de código exigidos e como você pode enviar suas alterações.
+This document serves as a guide to help you understand our development process, required coding standards, and how you can submit your changes.
 
-## 🤝 Processo de Submissão
+## 🤝 Submission Process
 
-Antes de começar a escrever código para uma nova funcionalidade (feature) ou para a correção de um bug, **é obrigatório abrir uma Issue**.
+Before you start writing code for a new feature or a bug fix, **you must open an Issue**.
 
-1. **Abra uma Issue:** Vá até a aba "Issues" no GitHub e descreva detalhadamente o que você deseja implementar ou qual problema encontrou.
-2. **Discussão:** Aguarde a validação da comunidade ou do mantenedor. Isso evita que você perca tempo implementando algo que possa não se alinhar com a visão do projeto ou que já esteja sendo feito por outra pessoa.
-3. **Desenvolvimento:** Após a aprovação da Issue, você pode fazer o fork do repositório, criar a sua branch e começar a codar.
-4. **Pull Request:** Abra o seu PR referenciando a Issue original (ex: `Resolves #12`).
+1. **Open an Issue:** Go to the "Issues" tab on GitHub and describe in detail what you want to implement or what problem you've found.
+2. **Discussion:** Wait for validation from the community or the maintainer. This prevents you from wasting time implementing something that might not align with the project's vision or is already being worked on by someone else.
+3. **Development:** After the Issue is approved, you can fork the repository, create your branch, and start coding.
+4. **Pull Request:** Open your PR referencing the original Issue (e.g., `Resolves #12`).
 
-## 💻 Padrões de Código e Engenharia
+## 💻 Code and Engineering Standards
 
-Para manter o projeto sustentável e organizado, seguimos regras rigorosas de engenharia. Ao contribuir, por favor, certifique-se de seguir estas diretrizes:
+To keep the project sustainable and organized, we follow strict engineering rules. When contributing, please make sure to follow these guidelines:
 
-1. **Simplicidade:** Prefira funções e arquivos pequenos. Evite aninhamentos profundos (use *early returns* e *guard clauses*).
-2. **Responsabilidade Única (SRP):** Cada módulo, classe e função deve ter apenas uma responsabilidade.
-3. **Nomenclatura:** Use nomes que revelem intenção (evite nomes genéricos como `data`, `process` ou `handler`).
-4. **Comentários:** Não comente o que é óbvio. Use comentários apenas para explicar decisões não triviais ou contornos de bugs.
-5. **Erros Acionáveis:** As mensagens de erro e exceções devem incluir contexto suficiente para identificar o problema rapidamente. Não use mensagens vagas.
-6. **Logging:** Use logging estruturado para observabilidade e logs em texto plano para saídas voltadas ao usuário no CLI.
+1. **Simplicity:** Prefer small functions and files. Avoid deep nesting (use *early returns* and *guard clauses*).
+2. **Single Responsibility (SRP):** Each module, class, and function should have only one responsibility.
+3. **Naming:** Use names that reveal intent (avoid generic names like `data`, `process`, or `handler`).
+4. **Comments:** Do not comment on what is obvious. Use comments only to explain non-trivial decisions or bug workarounds.
+5. **Actionable Errors:** Error messages and exceptions must include enough context to identify the problem quickly. Do not use vague messages.
+6. **Logging:** Use structured logging for observability and plain text logs for user-facing output in the CLI.
 
-## 🧪 Fluxo de Testes
+## 🧪 Testing Workflow
 
-O PomboHook leva testes muito a sério. Para que o seu Pull Request seja aceito, os seguintes requisitos de teste **devem ser atendidos rigorosamente**:
+PomboHook takes testing very seriously. For your Pull Request to be accepted, the following test requirements **must be strictly met**:
 
-1. **Execução Local:** Os comandos `make test` e `make lint` (ou `go vet ./...`) devem passar sem nenhum erro na sua máquina.
-2. **TDD e Comportamento:** Teste o comportamento público, *edge cases* e os caminhos de falha.
-3. **Cobertura:** 
-   - Códigos novos exigem **100% de cobertura** das novas linhas.
-   - O projeto possui um piso global de **80% de cobertura**, e módulos críticos (auth, rotas, túnel) exigem pelo menos **90%**.
-4. **Mocking:** Não faça mock da unidade que está sendo testada, faça mock apenas de suas dependências.
+1. **Local Execution:** The commands `make test` and `make lint` (or `go vet ./...`) must pass without any errors on your machine.
+2. **TDD and Behavior:** Test public behavior, *edge cases*, and failure paths.
+3. **Coverage:** 
+   - New code requires **100% coverage** for new lines.
+   - The project has a global floor of **80% coverage**, and critical modules (auth, routing, tunnel) require at least **90%**.
+4. **Mocking:** Do not mock the unit under test, mock only its dependencies.
 
-## 📝 Padrão de Commits
+## 📝 Commit Standards
 
-Nós adotamos a convenção do [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). Suas mensagens de commit devem seguir este formato padrão:
+We adopt the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) convention. Your commit messages must follow this standard format:
 
 ```text
-<tipo>[escopo opcional]: <descrição>
+<type>[optional scope]: <description>
 ```
 
-**Exemplos válidos:**
+**Valid examples:**
 - `feat: add persistent sqlite storage`
 - `fix: resolve data race in tunnel manager`
 - `docs: update setup instructions in README`
 - `test: improve coverage for RunSleep`
 
-## 💬 Comunidade e Dúvidas
+## 💬 Community and Questions
 
-Se você tiver qualquer dúvida sobre a arquitetura do código, como configurar seu ambiente ou como abordar a resolução de uma Issue, não hesite em perguntar! 
+If you have any questions about the code architecture, how to set up your environment, or how to approach solving an Issue, don't hesitate to ask!
 
-O nosso principal canal de comunicação são as **próprias Issues do GitHub**. Sinta-se à vontade para comentar e marcar o mantenedor para pedir ajuda.
+Our main communication channel is the **GitHub Issues**. Feel free to comment and mention the maintainer to ask for help.

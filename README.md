@@ -1,99 +1,99 @@
 # 🕊️ PomboHook
 
-PomboHook é uma ferramenta open-source leve e rápida, escrita em Go, para receber webhooks da internet diretamente no seu ambiente de desenvolvimento local (localhost). 
+PomboHook is a lightweight, fast, open-source tool written in Go to receive webhooks from the internet directly into your local development environment (localhost).
 
-## 🤔 Por que "PomboHook"?
-Historicamente, pombos-correio eram usados para entregar mensagens importantes de um ponto distante até um destino seguro de forma rápida e confiável. O **PomboHook** atua como o seu pombo-correio digital: ele captura as mensagens (webhooks) na nuvem e as entrega com segurança diretamente na porta do seu servidor local.
+## 🤔 Why "PomboHook"?
+Historically, carrier pigeons (*pombos-correio* in Portuguese) were used to deliver important messages from a distant point to a safe destination quickly and reliably. **PomboHook** acts as your digital carrier pigeon: it catches messages (webhooks) in the cloud and safely delivers them right to the door of your local server.
 
-## 🎯 Intenção do Projeto
-O desenvolvimento de integrações baseadas em webhooks (como Mercado Pago, Stripe, GitHub, etc.) geralmente exige a exposição da máquina local para a internet usando ferramentas pagas ou complexas como o ngrok. O PomboHook nasceu para ser uma alternativa **self-hosted**, minimalista e voltada para a experiência do desenvolvedor (DX). 
+## 🎯 Project Intent
+Developing webhook-based integrations (like Mercado Pago, Stripe, GitHub, etc.) usually requires exposing your local machine to the internet using paid or complex tools like ngrok. PomboHook was born to be a **self-hosted**, minimalist alternative focused on developer experience (DX).
 
-Ele é composto por duas partes:
-1. **O Servidor:** Fica hospedado na nuvem (ex: fly.io) recebendo os webhooks reais.
-2. **O CLI:** Roda na sua máquina local, conectando-se ao servidor via WebSocket e encaminhando os dados para a porta da sua aplicação (ex: `localhost:8080`).
+It consists of two parts:
+1. **The Server:** Hosted in the cloud (e.g., fly.io), receiving the actual webhooks.
+2. **The CLI:** Runs on your local machine, connecting to the server via WebSocket and forwarding the data to your application's port (e.g., `localhost:8080`).
 
-## 🚀 Setup Inicial e Como Executar
+## 🚀 Initial Setup and How to Run
 
-### Pré-requisitos
-- [Go](https://go.dev/) 1.21+ instalado.
-- Make (opcional, mas recomendado).
+### Prerequisites
+- [Go](https://go.dev/) 1.21+ installed.
+- Make (optional, but recommended).
 
-### Compilando o projeto
-Clone o repositório e compile os binários do Servidor e do CLI:
+### Compiling the project
+Clone the repository and compile the Server and CLI binaries:
 ```bash
 make build
 ```
-Isso gerará dois executáveis na pasta `bin/`: `bin/pombohook-server` e `bin/pombo`.
+This will generate two executables in the `bin/` folder: `bin/pombohook-server` and `bin/pombo`.
 
-### Passo 1: Subir o Servidor
-Você pode rodar o servidor localmente para testes ou hospedá-lo na nuvem.
+### Step 1: Start the Server
+You can run the server locally for testing or host it in the cloud.
 ```bash
-# O servidor usa variáveis de ambiente para configuração
+# The server uses environment variables for configuration
 export PORT=8080
-export AUTH_TOKEN="meu-token-super-secreto"
+export AUTH_TOKEN="my-super-secret-token"
 export LOG_LEVEL="debug"
 
 ./pombohook-server
 ```
 
-### Passo 2: Conectar o CLI (Pombo)
-Na sua máquina local, autentique-se com o servidor:
+### Step 2: Connect the CLI (Pombo)
+On your local machine, authenticate with the server:
 ```bash
-# Ping inicial para salvar a configuração no seu ~/.pombohook
-./pombo ping --server "ws://localhost:8080" --token "meu-token-super-secreto"
+# Initial ping to save the configuration in your ~/.pombohook
+./pombo ping --server "ws://localhost:8080" --token "my-super-secret-token"
 ```
 
-### Passo 3: Registrar uma Rota
-Diga ao PomboHook para qual porta local ele deve mandar os webhooks de um determinado path:
+### Step 3: Register a Route
+Tell PomboHook to which local port it should send webhooks from a specific path:
 ```bash
-./pombo route --path="/webhooks/pagamentos" --port=3000 # enviara todos webhooks que chegarem no path "/webhooks/pagamentos" do servidor para localhost:3000/webhooks/pagamentos
+./pombo route --path="/webhooks/payments" --port=3000 # will send all webhooks arriving at the server's "/webhooks/payments" path to localhost:3000/webhooks/payments
 ```
 
-### Passo 4: Voar! (Iniciar o Forwarding)
-Inicie a escuta em tempo real:
+### Step 4: Fly! (Start Forwarding)
+Start listening in real-time:
 ```bash
 ./pombo go
 ```
-Se preferir rodar em background, use:
+If you prefer to run it in the background, use:
 ```bash
 ./pombo go --background
 ```
-Para parar a execução em background:
+To stop the background execution:
 ```bash
 ./pombo sleep
 ```
 
-## 📦 Resiliência e Fila de Webhooks (Offline Mode)
+## 📦 Resilience and Webhook Queue (Offline Mode)
 
-O que acontece se a sua internet cair, ou se você fechar o CLI local enquanto a integração (ex: Mercado Pago) tenta te mandar um webhook?
+What happens if your internet goes down, or if you close the local CLI while an integration (e.g., Mercado Pago) tries to send you a webhook?
 
-Para evitar perda de dados, o Servidor do PomboHook possui uma **fila em memória (Queue)**:
-1. **Desconexão:** Quando o Servidor detecta que o CLI local não está conectado, ele intercepta o webhook recebido e o guarda na fila. O serviço externo que enviou o webhook receberá uma resposta de sucesso (`202 Accepted`), e não precisará fazer retentativas.
-2. **Limite de Segurança:** Por padrão, a fila comporta até **20 webhooks simultâneos**. Se o limite for atingido, os webhooks mais antigos são descartados para dar espaço aos novos (comportamento de *buffer circular*). Isso impede vazamentos de memória na sua hospedagem em nuvem.
-3. **Reconexão (Flush):** Assim que você ligar o CLI (`./pombo go`) novamente, o servidor detecta a conexão e imediatamente "descarrega" (flush) todos os webhooks acumulados na fila diretamente para a sua máquina local, na ordem em que chegaram.
+To prevent data loss, the PomboHook Server has an **in-memory queue**:
+1. **Disconnection:** When the Server detects that the local CLI is not connected, it intercepts the incoming webhook and stores it in the queue. The external service that sent the webhook will receive a success response (`202 Accepted`) and will not need to make retries.
+2. **Safety Limit:** By default, the queue holds up to **20 simultaneous webhooks**. If the limit is reached, the oldest webhooks are discarded to make room for new ones (*circular buffer* behavior). This prevents memory leaks in your cloud hosting.
+3. **Reconnection (Flush):** As soon as you start the CLI (`./pombo go`) again, the server detects the connection and immediately flushes all accumulated webhooks from the queue directly to your local machine, in the order they arrived.
 
-## 📂 Organização de Pastas e Responsabilidades
+## 📂 Folder Organization and Responsibilities
 
-O projeto segue a estrutura padrão de projetos Go (`Standard Go Project Layout`):
+The project follows the standard Go project structure (`Standard Go Project Layout`):
 
 - `cmd/`
-  - `server/main.go`: Ponto de entrada do Servidor. Faz injeção de dependências e sobe o servidor HTTP.
-  - `pombo/main.go`: Ponto de entrada do CLI local. Processa os comandos (ping, route, go, sleep).
-- `internal/` — Código privado e regras de negócio da aplicação:
-  - `auth/`: Middlewares de autenticação (validação do `AUTH_TOKEN`).
-  - `cli/`: Lógica principal dos comandos do CLI e gerenciamento de processos (daemon/background).
-  - `config/`: Setup de variáveis de ambiente.
-  - `forward/`: Forwarder HTTP local. Recebe os frames via WebSocket e dispara os requests para o seu `localhost`.
-  - `proxy/`: Proxy reverso do Servidor. Intercepta os webhooks da web e os coloca na fila.
-  - `queue/`: Fila em memória para gerenciar bursts de webhooks caso o CLI se desconecte temporariamente.
-  - `router/`: Gerenciador de rotas. Mapeia paths (ex: `/webhook`) para portas locais.
-  - `server/`: Estrutura base do servidor HTTP e rotas WebSocket.
-  - `storage/`: Manipulação de arquivos locais do CLI (`config.json`, `routes.json`, `pombo.pid`).
-  - `tunnel/`: Gerenciamento do WebSocket (TunnelManager) entre o Servidor e o CLI.
-- `tests/` — Testes E2E (End-to-End) garantindo que todas as peças funcionam juntas.
+  - `server/main.go`: Server entry point. Performs dependency injection and starts the HTTP server.
+  - `pombo/main.go`: Local CLI entry point. Processes commands (ping, route, go, sleep).
+- `internal/` — Private code and application business rules:
+  - `auth/`: Authentication middlewares (`AUTH_TOKEN` validation).
+  - `cli/`: Core logic for CLI commands and process management (daemon/background).
+  - `config/`: Environment variables setup.
+  - `forward/`: Local HTTP forwarder. Receives frames via WebSocket and fires requests to your `localhost`.
+  - `proxy/`: Server reverse proxy. Intercepts webhooks from the web and places them in the queue.
+  - `queue/`: In-memory queue to manage webhook bursts in case the CLI temporarily disconnects.
+  - `router/`: Route manager. Maps paths (e.g., `/webhook`) to local ports.
+  - `server/`: Base structure of the HTTP server and WebSocket routes.
+  - `storage/`: Local CLI file manipulation (`config.json`, `routes.json`, `pombo.pid`).
+  - `tunnel/`: WebSocket management (TunnelManager) between the Server and the CLI.
+- `tests/` — End-to-End (E2E) tests ensuring all pieces work together.
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Nós adoramos contribuições! Se você deseja ajudar a melhorar o PomboHook, por favor, leia o nosso guia de contribuição antes de começar.
+We love contributions! If you wish to help improve PomboHook, please read our contributing guide before you start.
 
-Veja como contribuir em: [CONTRIBUTING.md](CONTRIBUTING.md)
+See how to contribute in: [CONTRIBUTING.md](CONTRIBUTING.md)

@@ -1,10 +1,10 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
-# Cria um usuário non-root para ser usado no runtime
+# Create a non-root user to be used in the runtime
 RUN adduser -D -g '' -u 10001 pombohook
 
-# Garante a existência dos certificados CA
+# Ensure CA certificates exist
 RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
@@ -12,22 +12,22 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-# Compila estaticamente (CGO_ENABLED=0) e reduz o tamanho (-w -s)
+# Compile statically (CGO_ENABLED=0) and reduce size (-w -s)
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /pombohook-server ./cmd/server/
 
 # Runtime stage
 FROM scratch
 
-# Importa o usuário criado no builder
+# Import the user created in the builder
 COPY --from=builder /etc/passwd /etc/passwd
 
-# Importa os certificados SSL/TLS da Alpine do builder (necessário para o servidor fazer requisições HTTPS e se conectar a coisas se necessário)
+# Import the SSL/TLS certificates from Alpine's builder (required for the server to make HTTPS requests and connect to external services if needed)
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Copia o binário compilado
+# Copy the compiled binary
 COPY --from=builder /pombohook-server /usr/local/bin/pombohook-server
 
-# Força o contêiner a rodar com o usuário sem privilégios (pombohook/10001)
+# Force the container to run with the unprivileged user (pombohook/10001)
 USER 10001
 
 EXPOSE 8080
