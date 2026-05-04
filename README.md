@@ -22,14 +22,17 @@ It consists of two parts:
 
 There are multiple ways to install the CLI so it's globally available in your system's `PATH`:
 
-#### Option A: Pre-compiled Binaries (Recommended)
-You can download the pre-compiled binary for your OS (Windows, macOS, or Linux) directly from our [GitHub Releases](https://github.com/NatalNW7/pombohook/releases).
+#### Option A: Automatic Install Script (Recommended)
+You can use our automated installer which downloads the latest release and configures your system's `PATH`.
 
-**For Linux/macOS:**
+**For Linux / macOS:**
 ```bash
-# Download and install the binary (replace VERSION with the latest release)
-curl -sSL https://github.com/NatalNW7/pombohook/releases/latest/download/pombo_Linux_x86_64.tar.gz | tar -xz pombo
-sudo mv pombo /usr/local/bin/pombo
+curl -sSL https://raw.githubusercontent.com/NatalNW7/pombohook/main/scripts/install.sh | bash
+```
+
+**For Windows (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/NatalNW7/pombohook/main/scripts/install.ps1 | iex
 ```
 
 #### Option B: Using Go (For Go developers)
