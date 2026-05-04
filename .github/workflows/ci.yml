@@ -4,8 +4,22 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'scripts/**'
+      - '.github/workflows/cd.yml'
+      - '.goreleaser.yml'
+      - 'Dockerfile*'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'scripts/**'
+      - '.github/workflows/cd.yml'
+      - '.goreleaser.yml'
+      - 'Dockerfile*'
 
 jobs:
   build-test-coverage:
