@@ -18,8 +18,27 @@ It consists of two parts:
 - [Go](https://go.dev/) 1.21+ installed.
 - Make (optional, but recommended).
 
-### Compiling the project
-Clone the repository and compile the Server and CLI binaries:
+### Installing the CLI (Pombo)
+
+There are multiple ways to install the CLI so it's globally available in your system's `PATH`:
+
+#### Option A: Pre-compiled Binaries (Recommended)
+You can download the pre-compiled binary for your OS (Windows, macOS, or Linux) directly from our [GitHub Releases](https://github.com/NatalNW7/pombohook/releases).
+
+**For Linux/macOS:**
+```bash
+# Download and install the binary (replace VERSION with the latest release)
+curl -sSL https://github.com/NatalNW7/pombohook/releases/latest/download/pombo_Linux_x86_64.tar.gz | tar -xz pombo
+sudo mv pombo /usr/local/bin/pombo
+```
+
+#### Option B: Using Go (For Go developers)
+If you already have Go installed, you can simply run:
+```bash
+go install github.com/NatalNW7/pombohook/cmd/pombo@latest
+```
+
+#### Option C: Compiling manually
 ```bash
 make build
 ```
@@ -39,20 +58,16 @@ export LOG_LEVEL="debug"
 ```
 
 #### Option B: Running with Docker (Recommended for Cloud Hosting)
-The project includes a highly secure, minimalist Dockerfile using `scratch` (0 shells, minimal attack surface).
+You can use our official, highly secure, minimalist Docker image based on `scratch` (0 shells, minimal attack surface) published on Docker Hub.
 
 ```bash
-# 1. Build the Docker image
-docker build -t pombohook-server .
-
-# 2. Run the container exposing the port and injecting the env vars
 docker run -d \
   -p 8080:8080 \
   -e PORT=8080 \
   -e AUTH_TOKEN="my-super-secret-token" \
   -e LOG_LEVEL="debug" \
   --name pombohook-server \
-  pombohook-server
+  natalnw7/pombohook-server:latest
 ```
 
 ### Step 2: Connect the CLI (Pombo)

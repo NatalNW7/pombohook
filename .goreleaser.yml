@@ -1,0 +1,97 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    # You may remove this if you don't use go mod.
+    - go mod tidy
+
+builds:
+  - id: pombo
+    main: ./cmd/pombo
+    binary: pombo
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+  - id: server
+    main: ./cmd/server
+    binary: pombohook-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: pombo-archive
+    builds:
+      - pombo
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      pombo_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE*
+
+dockers:
+  - image_templates:
+      - "natalnw7/pombohook-server:{{ .Version }}-amd64"
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    builds:
+      - server
+    goos: linux
+    goarch: amd64
+
+  - image_templates:
+      - "natalnw7/pombohook-server:{{ .Version }}-arm64"
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+    builds:
+      - server
+    goos: linux
+    goarch: arm64
+
+docker_manifests:
+  - name_template: natalnw7/pombohook-server:{{ .Version }}
+    image_templates:
+      - natalnw7/pombohook-server:{{ .Version }}-amd64
+      - natalnw7/pombohook-server:{{ .Version }}-arm64
+  - name_template: natalnw7/pombohook-server:latest
+    image_templates:
+      - natalnw7/pombohook-server:{{ .Version }}-amd64
+      - natalnw7/pombohook-server:{{ .Version }}-arm64
+
+brews:
+  - name: pombohook
+    repository:
+      owner: NatalNW7
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/NatalNW7/pombohook"
+    description: "Self-hosted webhook forwarder and testing tool."
+    test: |
+      system "#{bin}/pombo --help"
+
+release:
+  github:
+    owner: NatalNW7
+    name: pombohook
