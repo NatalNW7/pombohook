@@ -1,7 +1,7 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
 
-version: 2
+version: 1
 
 before:
   hooks:
@@ -78,18 +78,6 @@ docker_manifests:
     image_templates:
       - natalnw7/pombohook-server:{{ .Version }}-amd64
       - natalnw7/pombohook-server:{{ .Version }}-arm64
-
-brews:
-  - name: pombohook
-    repository:
-      owner: NatalNW7
-      name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    directory: Formula
-    homepage: "https://github.com/NatalNW7/pombohook"
-    description: "Self-hosted webhook forwarder and testing tool."
-    test: |
-      system "#{bin}/pombo --help"
 
 release:
   github:
