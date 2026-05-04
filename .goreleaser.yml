@@ -53,7 +53,7 @@ dockers:
     use: buildx
     build_flag_templates:
       - "--platform=linux/amd64"
-    builds:
+    ids:
       - server
     goos: linux
     goarch: amd64
@@ -64,7 +64,7 @@ dockers:
     use: buildx
     build_flag_templates:
       - "--platform=linux/arm64"
-    builds:
+    ids:
       - server
     goos: linux
     goarch: arm64
