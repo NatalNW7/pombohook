@@ -396,6 +396,10 @@ func TestSleepErrors(t *testing.T) {
 		require.NoError(t, cmd.Start())
 		defer cmd.Process.Kill() // safety cleanup
 
+		go func() {
+			_ = cmd.Wait()
+		}()
+
 		store.SavePID(cmd.Process.Pid)
 
 		err := RunSleep(store, &buf)
