@@ -3,9 +3,6 @@ package cli
 import (
 	"fmt"
 	"io"
-	"os"
-	"syscall"
-	"time"
 
 	"github.com/NatalNW7/pombohook/internal/storage"
 )
@@ -41,35 +38,10 @@ func RunSleep(store *storage.Storage, w io.Writer) error {
 		return err
 	}
 
-	process, err := os.FindProcess(pid)
-	if err != nil {
+	if err := stopProcess(pid); err != nil {
 		store.RemovePID()
-		fmt.Fprintln(w, "✗ No pigeon is flying. Nothing to stop.")
-		return fmt.Errorf("process not found")
-	}
-
-	// Check if process exists
-	if err := process.Signal(syscall.Signal(0)); err != nil {
-		store.RemovePID()
-		fmt.Fprintln(w, "✗ No pigeon is flying. Nothing to stop.")
-		return fmt.Errorf("process not running")
-	}
-
-	// Send SIGTERM
-	process.Signal(syscall.SIGTERM)
-
-	// Wait up to 5 seconds
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		if err := process.Signal(syscall.Signal(0)); err != nil {
-			break // Process exited
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-
-	// If still alive, SIGKILL
-	if err := process.Signal(syscall.Signal(0)); err == nil {
-		process.Signal(syscall.SIGKILL)
+		fmt.Fprintln(w, "✗ Pigeon was not flying or could not be stopped.")
+		return err
 	}
 
 	store.RemovePID()

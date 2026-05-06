@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"syscall"
 
 	"github.com/NatalNW7/pombohook/internal/forward"
 	"github.com/NatalNW7/pombohook/internal/storage"
@@ -95,9 +94,7 @@ func RunGoBackground(store *storage.Storage, w io.Writer, executablePath string)
 	cmd := exec.Command(executablePath, "go", "--daemon")
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid: true, // Detach from parent session
-	}
+	cmd.SysProcAttr = sysProcAttr()
 
 	if err := cmd.Start(); err != nil {
 		logFile.Close()
@@ -116,13 +113,4 @@ func RunGoBackground(store *storage.Storage, w io.Writer, executablePath string)
 	fmt.Fprintln(w, "    Stop: pombo sleep")
 
 	return nil
-}
-
-// isProcessAlive checks if a process with the given PID is running.
-func isProcessAlive(pid int) bool {
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-	return process.Signal(syscall.Signal(0)) == nil
 }
