@@ -9,8 +9,8 @@ ARCH="$(uname -m)"
 
 # Map OS
 case "$OS" in
-  Linux) OS="Linux" ;;
-  Darwin) OS="Darwin" ;;
+  Linux) OS="linux" ;;
+  Darwin) OS="darwin" ;;
   *) echo "❌ Unsupported OS: $OS"; exit 1 ;;
 esac
 

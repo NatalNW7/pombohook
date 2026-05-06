@@ -4,7 +4,7 @@ Write-Host "🕊️  Installing PomboHook CLI..." -ForegroundColor Cyan
 
 # Check Arch
 $Arch = if ([Environment]::Is64BitOperatingSystem) { "amd64" } else { "386" }
-$Os = "Windows"
+$Os = "windows"
 
 # Fetch latest release from GitHub API
 Write-Host "🔍 Fetching latest release version..." -ForegroundColor Yellow
