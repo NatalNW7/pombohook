@@ -29,6 +29,7 @@ You can use our automated installer which downloads the latest release and confi
 ```bash
 curl -sSL https://raw.githubusercontent.com/NatalNW7/pombohook/main/scripts/install.sh | bash
 ```
+*(Note: The script will prompt for your `sudo` password to install the binary into `/usr/local/bin`)*
 
 **For Windows (PowerShell):**
 ```powershell
