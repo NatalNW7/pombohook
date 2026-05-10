@@ -55,7 +55,7 @@ You can run the server locally for testing or host it in the cloud.
 ```bash
 # The server uses environment variables for configuration
 export PORT=8080
-export AUTH_TOKEN="my-super-secret-token"
+export POMBOHOOK_TOKEN="my-super-secret-token"
 export LOG_LEVEL="debug"
 
 ./bin/pombohook-server
@@ -68,7 +68,7 @@ You can use our official, highly secure, minimalist Docker image based on `scrat
 docker run -d \
   -p 8080:8080 \
   -e PORT=8080 \
-  -e AUTH_TOKEN="my-super-secret-token" \
+  -e POMBOHOOK_TOKEN="my-super-secret-token" \
   -e LOG_LEVEL="debug" \
   --name pombohook-server \
   natalnw7/pombohook-server:latest
@@ -118,7 +118,7 @@ The project follows the standard Go project structure (`Standard Go Project Layo
   - `server/main.go`: Server entry point. Performs dependency injection and starts the HTTP server.
   - `pombo/main.go`: Local CLI entry point. Processes commands (ping, route, go, sleep).
 - `internal/` — Private code and application business rules:
-  - `auth/`: Authentication middlewares (`AUTH_TOKEN` validation).
+  - `auth/`: Authentication middlewares (`POMBOHOOK_TOKEN` validation).
   - `cli/`: Core logic for CLI commands and process management (daemon/background).
   - `config/`: Environment variables setup.
   - `forward/`: Local HTTP forwarder. Receives frames via WebSocket and fires requests to your `localhost`.
