@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/NatalNW7/pombohook/internal/forward"
 	"github.com/NatalNW7/pombohook/internal/storage"
@@ -36,8 +37,12 @@ func RunGo(store *storage.Storage, w io.Writer, logger *slog.Logger) error {
 	}
 
 	fwd := forward.NewForwarder(routes, logger)
+
+	baseURL := strings.TrimRight(cfg.Server, "/")
+	wsURL := baseURL + "/ws"
+
 	client := tunnel.NewTunnelClient(
-		cfg.Server,
+		wsURL,
 		cfg.Token,
 		func(frame tunnel.Frame) {
 			if frame.Type == tunnel.FrameTypeRequest {
