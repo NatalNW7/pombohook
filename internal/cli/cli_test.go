@@ -375,6 +375,30 @@ func TestRunGo(t *testing.T) {
 		assert.Contains(t, err.Error(), "registering:")
 	})
 
+	t.Run("should append /ws to server url", func(t *testing.T) {
+		var requestedPath string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestedPath = r.URL.Path
+			upgrader := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
+			conn, err := upgrader.Upgrade(w, r, nil)
+			if err == nil {
+				conn.Close()
+			}
+		}))
+		defer srv.Close()
+
+		store := newTestStore(t)
+		wsURL := "ws" + srv.URL[4:]
+		store.SaveConfig(storage.PomboConfig{Server: wsURL, Token: "t"})
+		store.AddRoute(config.RouteMapping{Path: "/webhook/test", Port: 8081})
+		var buf bytes.Buffer
+		logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+		_ = RunGo(store, &buf, logger)
+
+		assert.Equal(t, "/ws", requestedPath)
+	})
+
 	t.Run("should handle corrupted config", func(t *testing.T) {
 		store := newTestStore(t)
 		// Bypass SaveConfig to write corrupted JSON
