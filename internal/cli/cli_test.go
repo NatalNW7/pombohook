@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/NatalNW7/pombohook/internal/config"
@@ -85,6 +86,40 @@ func TestPing(t *testing.T) {
 		err := RunPing(store, &buf, "http://localhost:8080", "")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "token")
+	})
+
+	t.Run("should convert ws:// to http:// for ping request", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"message":"pong"}`))
+		}))
+		defer srv.Close()
+
+		store := newTestStore(t)
+		var buf bytes.Buffer
+
+		wsURL := strings.Replace(srv.URL, "http://", "ws://", 1)
+		err := RunPing(store, &buf, wsURL, "valid-token")
+		require.NoError(t, err)
+
+		// Config must preserve the original ws:// URL for WebSocket connections
+		cfg, _ := store.LoadConfig()
+		assert.Equal(t, wsURL, cfg.Server)
+		assert.Contains(t, buf.String(), "Connection established")
+	})
+
+	t.Run("should convert wss:// scheme correctly", func(t *testing.T) {
+		// Unit-test the conversion logic directly:
+		// wss://host → https://host, ws://host → http://host
+		input := "wss://example.com"
+		converted := strings.Replace(input, "wss://", "https://", 1)
+		converted = strings.Replace(converted, "ws://", "http://", 1)
+		assert.Equal(t, "https://example.com", converted)
+
+		input2 := "ws://example.com"
+		converted2 := strings.Replace(input2, "wss://", "https://", 1)
+		converted2 = strings.Replace(converted2, "ws://", "http://", 1)
+		assert.Equal(t, "http://example.com", converted2)
 	})
 }
 

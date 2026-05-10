@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/NatalNW7/pombohook/internal/storage"
@@ -18,8 +19,11 @@ func RunPing(store *storage.Storage, w io.Writer, server, token string) error {
 		return fmt.Errorf("--token is required")
 	}
 
-	// Build the ping URL (convert ws:// to http:// for the REST ping)
-	pingURL := server + "/ping"
+	// Convert WebSocket scheme to HTTP for the REST ping request
+	httpServer := strings.Replace(server, "wss://", "https://", 1)
+	httpServer = strings.Replace(httpServer, "ws://", "http://", 1)
+
+	pingURL := httpServer + "/ping"
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest(http.MethodGet, pingURL, nil)
