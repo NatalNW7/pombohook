@@ -144,3 +144,32 @@ func TestTokenMiddleware(t *testing.T) {
 		assert.Equal(t, `{"data":"test"}`, receivedBody)
 	})
 }
+
+func TestTokenMiddleware_TimingSafe(t *testing.T) {
+	t.Run("should reject token with similar prefix", func(t *testing.T) {
+		middleware := TokenMiddleware(testToken, authLogger())
+		handler := middleware(protectedHandler())
+
+		// Use a token that shares the same prefix
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
+		req.Header.Set("Authorization", "Bearer secret-pombo-toke")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+	})
+
+	t.Run("should reject token with extra suffix", func(t *testing.T) {
+		middleware := TokenMiddleware(testToken, authLogger())
+		handler := middleware(protectedHandler())
+
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
+		req.Header.Set("Authorization", "Bearer "+testToken+"extra")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+	})
+}

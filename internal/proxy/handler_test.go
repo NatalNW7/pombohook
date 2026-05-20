@@ -233,3 +233,61 @@ func TestProxyHandler_Quality(t *testing.T) {
 		assert.Empty(t, ts.frames[0].Body)
 	})
 }
+
+func TestProxyHandler_BodyLimit(t *testing.T) {
+	t.Run("should return 413 when body exceeds max size", func(t *testing.T) {
+		handler, _, _, reg := newTestProxyHandler(true, 20)
+		reg.Register("/hook", 8080, "t1")
+
+		// Create a body larger than 1 MB
+		oversizedBody := bytes.Repeat([]byte("x"), (1<<20)+1)
+		req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(oversizedBody))
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusRequestEntityTooLarge, rec.Code)
+		assert.Contains(t, rec.Body.String(), "request body too large")
+	})
+
+	t.Run("should accept body within size limit", func(t *testing.T) {
+		handler, ts, _, reg := newTestProxyHandler(true, 20)
+		reg.Register("/hook", 8080, "t1")
+
+		// Create a body exactly at 1 MB
+		validBody := bytes.Repeat([]byte("a"), 1<<20)
+		req := httptest.NewRequest(http.MethodPost, "/hook", bytes.NewReader(validBody))
+		rec := httptest.NewRecorder()
+
+		ts.waitGroup.Add(1)
+		handler.ServeHTTP(rec, req)
+		ts.waitGroup.Wait()
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "delivered")
+
+		ts.mu.Lock()
+		defer ts.mu.Unlock()
+		assert.Len(t, ts.frames[0].Body, 1<<20)
+	})
+
+	t.Run("should return 500 when body read fails", func(t *testing.T) {
+		handler, _, _, reg := newTestProxyHandler(true, 20)
+		reg.Register("/hook", 8080, "t1")
+
+		req := httptest.NewRequest(http.MethodPost, "/hook", &errorReader{})
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		assert.Contains(t, rec.Body.String(), "failed to read request body")
+	})
+}
+
+// errorReader is a reader that always returns an error.
+type errorReader struct{}
+
+func (e *errorReader) Read(_ []byte) (int, error) {
+	return 0, io.ErrUnexpectedEOF
+}

@@ -16,15 +16,16 @@ import (
 
 // Server is the PomboHook API server.
 type Server struct {
-	config   *config.ServerConfig
-	registry *router.RouteRegistry
-	tunnel   *tunnel.TunnelManager
-	queue    *queue.WebhookQueue
-	auth     func(http.Handler) http.Handler
-	logger   *slog.Logger
-	mux      *http.ServeMux
-	mu       sync.Mutex
-	httpSrv  *http.Server
+	config         *config.ServerConfig
+	registry       *router.RouteRegistry
+	tunnel         *tunnel.TunnelManager
+	queue          *queue.WebhookQueue
+	auth           func(http.Handler) http.Handler
+	allowedOrigins []string
+	logger         *slog.Logger
+	mux            *http.ServeMux
+	mu             sync.Mutex
+	httpSrv        *http.Server
 }
 
 // NewServer creates a new Server with all dependencies injected.
@@ -40,13 +41,14 @@ func NewServer(
 	logger *slog.Logger,
 ) *Server {
 	return &Server{
-		config:   cfg,
-		registry: registry,
-		tunnel:   tm,
-		queue:    q,
-		auth:     authMiddleware,
-		logger:   logger,
-		mux:      http.NewServeMux(),
+		config:         cfg,
+		registry:       registry,
+		tunnel:         tm,
+		queue:          q,
+		auth:           authMiddleware,
+		allowedOrigins: cfg.AllowedOrigins,
+		logger:         logger,
+		mux:            http.NewServeMux(),
 	}
 }
 

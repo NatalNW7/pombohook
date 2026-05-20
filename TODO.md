@@ -23,7 +23,10 @@
 - [ ] Isolamento de rotas por token/usuário
 - [ ] Rate limiting por conexão
 
-## Melhorias de Segurança
+## Segurança
+
+
+### Melhorias Futuras
 - [ ] Rotação de tokens
 - [ ] Whitelist de IPs permitidos para registro de rotas
 - [ ] mTLS entre CLI e servidor

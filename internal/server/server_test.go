@@ -20,9 +20,10 @@ func TestServer_Create(t *testing.T) {
 	t.Run("should create server with valid config", func(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 		cfg := &config.ServerConfig{
-			Port:      "9090",
-			AuthToken: "tok",
-			LogLevel:  "info",
+			Port:           "9090",
+			AuthToken:      "tok",
+			LogLevel:       "info",
+			AllowedOrigins: []string{"*"},
 		}
 		registry := router.NewRouteRegistry()
 		tm := tunnel.NewTunnelManager(logger)
@@ -36,9 +37,10 @@ func TestServer_Create(t *testing.T) {
 	t.Run("should route ping to handler", func(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 		cfg := &config.ServerConfig{
-			Port:      "9090",
-			AuthToken: "tok",
-			LogLevel:  "info",
+			Port:           "9090",
+			AuthToken:      "tok",
+			LogLevel:       "info",
+			AllowedOrigins: []string{"*"},
 		}
 		registry := router.NewRouteRegistry()
 		tm := tunnel.NewTunnelManager(logger)
