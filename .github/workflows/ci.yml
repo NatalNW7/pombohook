@@ -21,6 +21,9 @@ on:
       - '.goreleaser.yml'
       - 'Dockerfile*'
 
+permissions:
+  contents: read
+
 jobs:
   build-test-coverage:
     if: github.event.pull_request.draft == false || github.event_name == 'push'
