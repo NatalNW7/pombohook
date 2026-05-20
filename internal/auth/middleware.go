@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -27,7 +28,7 @@ func TokenMiddleware(expectedToken string, logger *slog.Logger) func(http.Handle
 			}
 
 			token := strings.TrimSpace(parts[1])
-			if token == "" || token != expectedToken {
+			if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(expectedToken)) != 1 {
 				unauthorized(w)
 				logger.Warn("request rejected: invalid token")
 				return

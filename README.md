@@ -57,6 +57,8 @@ You can run the server locally for testing or host it in the cloud.
 export PORT=8080
 export POMBOHOOK_TOKEN="my-super-secret-token"
 export LOG_LEVEL="debug"
+# Optional: restrict WebSocket origins (default: "*" = allow all)
+# export POMBOHOOK_ALLOWED_ORIGINS="https://example.com,https://api.example.com"
 
 ./bin/pombohook-server
 ```
@@ -70,6 +72,7 @@ docker run -d \
   -e PORT=8080 \
   -e POMBOHOOK_TOKEN="my-super-secret-token" \
   -e LOG_LEVEL="debug" \
+  -e POMBOHOOK_ALLOWED_ORIGINS="*" \
   --name pombohook-server \
   natalnw7/pombohook-server:latest
 ```

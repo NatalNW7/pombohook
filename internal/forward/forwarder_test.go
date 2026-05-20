@@ -171,6 +171,62 @@ func TestForwarder_EdgeCases(t *testing.T) {
 	})
 }
 
+func TestForwarder_PathSanitization(t *testing.T) {
+	t.Run("should reject path traversal attempt", func(t *testing.T) {
+		called := false
+		target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer target.Close()
+
+		port := extractPort(t, target.URL)
+		routes := map[string]int{"/../etc/passwd": port}
+		fwd := NewForwarder(routes, forwarderLogger())
+
+		frame := tunnel.NewRequestFrame("POST", "/../etc/passwd", nil, nil)
+		fwd.Forward(frame)
+
+		assert.False(t, called, "request with path traversal should not reach target")
+	})
+
+	t.Run("should reject path without leading slash", func(t *testing.T) {
+		called := false
+		target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer target.Close()
+
+		port := extractPort(t, target.URL)
+		routes := map[string]int{"webhook/mp": port}
+		fwd := NewForwarder(routes, forwarderLogger())
+
+		frame := tunnel.NewRequestFrame("POST", "webhook/mp", nil, nil)
+		fwd.Forward(frame)
+
+		assert.False(t, called, "request without leading slash should not reach target")
+	})
+
+	t.Run("should accept clean path", func(t *testing.T) {
+		called := false
+		target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer target.Close()
+
+		port := extractPort(t, target.URL)
+		routes := map[string]int{"/webhook/mp": port}
+		fwd := NewForwarder(routes, forwarderLogger())
+
+		frame := tunnel.NewRequestFrame("POST", "/webhook/mp", nil, []byte(`{}`))
+		fwd.Forward(frame)
+
+		assert.True(t, called, "clean path should reach target")
+	})
+}
+
 // extractPort parses the port number from an httptest URL like "http://127.0.0.1:PORT"
 func extractPort(t *testing.T, rawURL string) int {
 	t.Helper()

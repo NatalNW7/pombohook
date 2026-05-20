@@ -45,9 +45,10 @@ func setupE2EEnvironment(t *testing.T, queueCapacity int) *e2eEnv {
 
 	// 1. Setup Server
 	cfg := &config.ServerConfig{
-		Port:      "8080",
-		AuthToken: token,
-		LogLevel:  "debug",
+		Port:           "8080",
+		AuthToken:      token,
+		LogLevel:       "debug",
+		AllowedOrigins: []string{"*"},
 	}
 
 	registry := router.NewRouteRegistry()

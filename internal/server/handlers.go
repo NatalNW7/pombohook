@@ -26,7 +26,9 @@ func (s *Server) handlePing(w http.ResponseWriter, r *http.Request) {
 // handleWS upgrades the HTTP connection to a WebSocket and registers it with the tunnel manager.
 func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool { return true },
+		CheckOrigin: func(r *http.Request) bool {
+			return s.isOriginAllowed(r.Header.Get("Origin"))
+		},
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -105,4 +107,15 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 			// In Phase 9, we don't process acks/errors strictly, just drop them or log
 		}
 	}()
+}
+
+// isOriginAllowed checks if the given origin is permitted by the server's allowedOrigins list.
+// A wildcard "*" in the list permits all origins.
+func (s *Server) isOriginAllowed(origin string) bool {
+	for _, allowed := range s.allowedOrigins {
+		if allowed == "*" || allowed == origin {
+			return true
+		}
+	}
+	return false
 }

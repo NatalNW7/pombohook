@@ -29,9 +29,10 @@ func serverTestLogger() *slog.Logger {
 func newTestServer() *Server {
 	logger := serverTestLogger()
 	cfg := &config.ServerConfig{
-		Port:      "8080",
-		AuthToken: testServerToken,
-		LogLevel:  "info",
+		Port:           "8080",
+		AuthToken:      testServerToken,
+		LogLevel:       "info",
+		AllowedOrigins: []string{"*"},
 	}
 	registry := router.NewRouteRegistry()
 	tm := tunnel.NewTunnelManager(logger)
@@ -47,9 +48,10 @@ func newTestServer() *Server {
 func newTestServerWithDeps() (*Server, *router.RouteRegistry, *tunnel.TunnelManager, *queue.WebhookQueue) {
 	logger := serverTestLogger()
 	cfg := &config.ServerConfig{
-		Port:      "8080",
-		AuthToken: testServerToken,
-		LogLevel:  "info",
+		Port:           "8080",
+		AuthToken:      testServerToken,
+		LogLevel:       "info",
+		AllowedOrigins: []string{"*"},
 	}
 	registry := router.NewRouteRegistry()
 	tm := tunnel.NewTunnelManager(logger)
@@ -315,9 +317,10 @@ func TestServer_StartAndShutdown(t *testing.T) {
 	t.Run("should start listening and shutdown gracefully", func(t *testing.T) {
 		logger := serverTestLogger()
 		cfg := &config.ServerConfig{
-			Port:      "0",
-			AuthToken: testServerToken,
-			LogLevel:  "info",
+			Port:           "0",
+			AuthToken:      testServerToken,
+			LogLevel:       "info",
+			AllowedOrigins: []string{"*"},
 		}
 		registry := router.NewRouteRegistry()
 		tm := tunnel.NewTunnelManager(logger)

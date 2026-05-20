@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/NatalNW7/pombohook/internal/tunnel"
@@ -28,7 +30,13 @@ func NewForwarder(routes map[string]int, logger *slog.Logger) *Forwarder {
 
 // Forward takes a REQUEST Frame and sends it to the matching localhost target.
 func (f *Forwarder) Forward(frame tunnel.Frame) {
-	port, found := f.routes[frame.Path]
+	cleanPath := path.Clean(frame.Path)
+	if cleanPath != frame.Path || !strings.HasPrefix(cleanPath, "/") {
+		f.logger.Warn("rejected suspicious path", "path", frame.Path)
+		return
+	}
+
+	port, found := f.routes[cleanPath]
 	if !found {
 		f.logger.Warn("no route for path", "path", frame.Path)
 		return
