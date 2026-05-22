@@ -66,13 +66,7 @@ jobs:
 
   security-gates:
     if: github.event.pull_request.draft == false || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        
-      - name: Call Security Gates
-        uses: ./.github/workflows/security.yml
+    uses: ./.github/workflows/security.yml
 
   pr-checks:
     name: Verify All Checks Passed
