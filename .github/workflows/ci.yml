@@ -1,4 +1,4 @@
-name: CI
+name: CI Pipeline
 
 on:
   push:
@@ -35,10 +35,10 @@ jobs:
         go-version: ['1.21', '1.24', '1.26']
     
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Set up Go
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
@@ -63,3 +63,27 @@ jobs:
             exit 1
           fi
           echo "Coverage is acceptable ($COVERAGE%)."
+
+  security-gates:
+    if: github.event.pull_request.draft == false || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        
+      - name: Call Security Gates
+        uses: ./.github/workflows/security.yml
+
+  pr-checks:
+    name: Verify All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [build-test-coverage, security-gates]
+    if: always()
+    steps:
+      - name: Check if any checks failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') 
+        run: |
+          echo "One or more checks failed"
+          exit 1
+      - name: All checks passed
+        run: echo "All PR checks passed successfully!"
