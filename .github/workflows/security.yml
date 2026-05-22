@@ -25,8 +25,8 @@ jobs:
       - name: Install Gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
-      - name: Run Gosec (fail on HIGH+ only)
-        run: gosec -severity high -fmt text ./...
+      - name: Run Gosec (severity >= MEDIUM, confidence >= HIGH)
+        run: gosec -severity medium -confidence high -fmt text ./...
 
   sca:
     runs-on: ubuntu-latest
