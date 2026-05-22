@@ -21,7 +21,7 @@ func (s *Storage) BasePath() string {
 }
 
 func (s *Storage) ensureDir() error {
-	return os.MkdirAll(s.basePath, 0755)
+	return os.MkdirAll(s.basePath, 0700)
 }
 
 func (s *Storage) filePath(name string) string {

@@ -1,0 +1,77 @@
+name: Security Gates
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    name: Gosec Scan
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Install Gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run Gosec (severity >= MEDIUM, confidence >= HIGH)
+        run: gosec -severity medium -confidence high -fmt text ./...
+
+  sca:
+    runs-on: ubuntu-latest
+    name: Trivy SCA Scan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run Trivy SCA Scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+
+  image-scan:
+    runs-on: ubuntu-latest
+    name: Trivy Image Scan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Build binary for Docker context
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o pombohook-server ./cmd/server/
+
+      - name: Build image
+        run: docker build -t pombohook:ci-scan .
+
+      - name: Run Trivy Image Scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: "image"
+          image-ref: "pombohook:ci-scan"
+          format: "table"
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
