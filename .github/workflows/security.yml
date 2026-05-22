@@ -41,7 +41,7 @@ jobs:
           scan-type: "fs"
           scan-ref: "."
           format: "table"
-          exit-code: 1
+          exit-code: '1'
           ignore-unfixed: true
           severity: "CRITICAL,HIGH"
 
@@ -71,7 +71,7 @@ jobs:
           scan-type: "image"
           image-ref: "pombohook:ci-scan"
           format: "table"
-          exit-code: 1
+          exit-code: '1'
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"

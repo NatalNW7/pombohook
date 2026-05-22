@@ -64,7 +64,7 @@ jobs:
 
   security-gates:
     name: Security Gates
-    if: github.event.pull_request.draft == false || github.event_name == 'pull_request'
+    if: github.event.pull_request.draft == false || github.event_name == 'push'
     uses: ./.github/workflows/security.yml
 
   pr-checks:
