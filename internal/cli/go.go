@@ -90,7 +90,7 @@ func RunGoBackground(store *storage.Storage, w io.Writer, executablePath string)
 
 	// Open log file
 	logPath := filepath.Join(store.BasePath(), "pombo.log")
-	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644) //nolint:gosec // #nosec G304 G302 - logPath is derived from os.UserHomeDir(), not user input; 0644 is standard for CLI log files
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644) // #nosec G304 G302 -- logPath derived from os.UserHomeDir(), not user input; 0644 is standard for CLI log files
 	if err != nil {
 		return fmt.Errorf("opening log file: %w", err)
 	}

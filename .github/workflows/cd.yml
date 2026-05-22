@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   security-gate:
+    name: Security Gates
     uses: ./.github/workflows/security.yml
 
   goreleaser:

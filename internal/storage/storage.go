@@ -21,7 +21,7 @@ func (s *Storage) BasePath() string {
 }
 
 func (s *Storage) ensureDir() error {
-	return os.MkdirAll(s.basePath, 0755) //nolint:gosec // #nosec G301 - basePath is derived from os.UserHomeDir(), not user input; 0755 is standard for CLI config directories
+	return os.MkdirAll(s.basePath, 0755) // #nosec G301 -- basePath derived from os.UserHomeDir(), not user input; 0755 is standard for CLI config directories
 }
 
 func (s *Storage) filePath(name string) string {
