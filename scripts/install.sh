@@ -34,7 +34,7 @@ fi
 VERSION=${LATEST_TAG#v}
 
 TARBALL="pombo_${VERSION}_${OS}_${ARCH}.tar.gz"
-DOWNLOAD_URL="https://github.com/NatalNW7/pombohook/releases/latest/download/$TARBALL"
+DOWNLOAD_URL="https://github.com/NatalNW7/pombohook/releases/download/$LATEST_TAG/$TARBALL"
 
 echo "⬇️  Downloading $TARBALL..."
 
