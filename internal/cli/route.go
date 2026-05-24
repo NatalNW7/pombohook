@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -19,6 +20,11 @@ func RunRouteAdd(store *storage.Storage, w io.Writer, path string, port int) err
 
 	route := config.RouteMapping{Path: path, Port: port}
 	if err := store.AddRoute(route); err != nil {
+		var existsErr *storage.ErrRouteAlreadyExists
+		if errors.As(err, &existsErr) {
+			fmt.Fprintf(w, "🕊️  Route %s already configured. Ready to fly!\n", path)
+			return nil
+		}
 		return err
 	}
 
