@@ -40,6 +40,15 @@ func (s *Storage) LoadRoutes() ([]RouteMapping, error) {
 	return routes, nil
 }
 
+// ErrRouteAlreadyExists indicates the route mapping already exists in storage.
+type ErrRouteAlreadyExists struct {
+	Path string
+}
+
+func (e *ErrRouteAlreadyExists) Error() string {
+	return fmt.Sprintf("route %q already exists", e.Path)
+}
+
 // AddRoute appends a route mapping. Returns error if path already exists.
 func (s *Storage) AddRoute(route RouteMapping) error {
 	routes, err := s.LoadRoutes()
@@ -49,7 +58,7 @@ func (s *Storage) AddRoute(route RouteMapping) error {
 
 	for _, r := range routes {
 		if r.Path == route.Path {
-			return fmt.Errorf("route %q already exists", route.Path)
+			return &ErrRouteAlreadyExists{Path: route.Path}
 		}
 	}
 

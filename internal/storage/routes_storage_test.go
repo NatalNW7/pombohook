@@ -47,6 +47,10 @@ func TestRoutesStorage_SaveAndLoad(t *testing.T) {
 
 		err = s.AddRoute(config.RouteMapping{Path: "/webhook/mp", Port: 9090})
 		require.Error(t, err)
+		
+		var existsErr *ErrRouteAlreadyExists
+		require.ErrorAs(t, err, &existsErr)
+		assert.Equal(t, "/webhook/mp", existsErr.Path)
 		assert.Contains(t, err.Error(), "already exists")
 	})
 

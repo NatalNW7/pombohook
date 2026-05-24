@@ -138,13 +138,17 @@ func TestRoute(t *testing.T) {
 		assert.Contains(t, buf.String(), "Route added")
 	})
 
-	t.Run("should reject duplicate", func(t *testing.T) {
+	t.Run("should handle duplicate successfully", func(t *testing.T) {
 		store := newTestStore(t)
 		var buf bytes.Buffer
 
-		RunRouteAdd(store, &buf, "/webhook/mp", 8081)
-		err := RunRouteAdd(store, &buf, "/webhook/mp", 9090)
-		require.Error(t, err)
+		err := RunRouteAdd(store, &buf, "/webhook/mp", 8081)
+		require.NoError(t, err)
+
+		buf.Reset()
+		err = RunRouteAdd(store, &buf, "/webhook/mp", 9090)
+		require.NoError(t, err)
+		assert.Contains(t, buf.String(), "Route /webhook/mp already configured. Ready to fly!")
 	})
 
 	t.Run("should list routes", func(t *testing.T) {
