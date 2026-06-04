@@ -1,0 +1,27 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.md'
+      - '.gitignore'
+      - 'scripts/**'
+      - '.github/workflows/cd.yml'
+      - '.goreleaser.yml'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '**.md'
+      - '.gitignore'
+      - 'scripts/**'
+      - '.github/workflows/cd.yml'
+      - '.goreleaser.yml'
+
+jobs:
+  pr-checks:
+    name: Verify All Checks Passed
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Nenhuma alteração de código fonte detectada. Pulando o CI com sucesso!"
