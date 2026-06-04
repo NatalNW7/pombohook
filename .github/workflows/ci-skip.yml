@@ -24,4 +24,4 @@ jobs:
     name: Verify All Checks Passed
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Nenhuma alteração de código fonte detectada. Pulando o CI com sucesso!"
+      - run: echo "No source code changes detected. Skipping CI successfully!"
